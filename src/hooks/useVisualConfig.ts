@@ -433,6 +433,7 @@ export function parseRoutingStrategy(raw: unknown): RoutingStrategy {
   if (['weighted-round-robin', 'weightedroundrobin', 'wrr'].includes(normalized)) {
     return 'weighted-round-robin';
   }
+  if (normalized === 'session-balanced') return 'session-balanced';
   if (['fill-first', 'fillfirst', 'ff'].includes(normalized)) return 'fill-first';
   return 'round-robin';
 }

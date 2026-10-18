@@ -107,7 +107,8 @@
     "plugin_store": "插件商店",
     "config_management": "設定面板",
     "logs": "記錄檢視",
-    "system_info": "中心資訊"
+    "system_info": "中心資訊",
+    "sessions": "工作階段與路由"
   },
   "nav_groups": {
     "operate": "運行",
@@ -127,7 +128,8 @@
     "plugin_store": "探索並安裝插件",
     "logs": "請求追蹤與排查",
     "config_management": "閘道基礎設定",
-    "system_info": "運行與診斷資訊"
+    "system_info": "運行與診斷資訊",
+    "sessions": "對話固定使用同一帳戶。配額與近期負載用於分配新工作階段。"
   },
   "dashboard": {
     "hero_verdict_good": "運行平穩",
@@ -2296,5 +2298,49 @@
     "unavailable": "重置暫不可用。",
     "rate_limited": "請求過於頻繁。",
     "auth_error": "授權遭拒。"
+  },
+  "sessions": {
+    "title": "工作階段與路由",
+    "description": "對話固定使用同一帳戶。配額與近期負載用於分配新工作階段。",
+    "refresh": "重新整理",
+    "load_failed": "無法載入工作階段路由。此頁面需要配套的後端分支。",
+    "action_failed": "路由修改失敗。",
+    "refresh_first": "連線已變更，請重新整理後再修改路由。",
+    "disabled": "選擇 session-balanced 路由策略以啟用持久帳戶綁定。",
+    "open_config": "開啟設定",
+    "accounts": "帳戶",
+    "account_help": "暫停新分配時，現有對話仍使用原帳戶。近期負載統計過去 15 分鐘活躍的工作階段。",
+    "headroom": "已觀測剩餘配額",
+    "observed": "最後觀測時間",
+    "recent": "近期工作階段",
+    "status": "狀態",
+    "unknown": "未知",
+    "unavailable": "無法使用",
+    "draining": "暫停接收新工作階段",
+    "accepting": "接收新工作階段",
+    "resume": "恢復接收新工作階段",
+    "drain": "暫停新分配",
+    "conversations": "對話",
+    "empty": "尚無已路由的對話。",
+    "account": "綁定帳戶",
+    "reason": "分配原因",
+    "last_seen": "最後活動",
+    "cache_read": "快取讀取占輸入比例",
+    "tokens": "輸入 / 輸出權杖",
+    "cache_write": "快取寫入權杖",
+    "partial_usage": "部分請求未提供完整的權杖統計。",
+    "pending": "待處理變更",
+    "history": "帳戶遷移記錄",
+    "choose_account": "選擇其他帳戶",
+    "move": "請求遷移",
+    "move_help": "遷移將在下一個安全請求時生效。有狀態連線可能需要重新連線並傳送完整歷史。",
+    "strategy": "工作階段均衡（持久綁定）",
+    "details": "工作階段詳情",
+    "parent": "父工作階段",
+    "caller": "呼叫方範圍",
+    "generation": "綁定版本",
+    "created": "首次活動",
+    "expires": "閒置到期",
+    "results": "成功 / 失敗請求"
   }
 }

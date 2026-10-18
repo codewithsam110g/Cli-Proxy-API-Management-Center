@@ -107,7 +107,8 @@
     "plugin_store": "Cửa hàng Plugin",
     "config_management": "Bảng cấu hình",
     "logs": "Trình xem Log",
-    "system_info": "Thông tin Trung tâm Quản lý"
+    "system_info": "Thông tin Trung tâm Quản lý",
+    "sessions": "Phiên và định tuyến"
   },
   "nav_groups": {
     "operate": "Vận hành",
@@ -127,7 +128,8 @@
     "plugin_store": "Khám phá & cài đặt plugin",
     "logs": "Truy vết yêu cầu",
     "config_management": "Cấu hình gateway",
-    "system_info": "Runtime & chẩn đoán"
+    "system_info": "Runtime & chẩn đoán",
+    "sessions": "Hội thoại giữ nguyên tài khoản. Hạn mức và tải gần đây dùng để phân bổ phiên mới."
   },
   "dashboard": {
     "hero_verdict_good": "Mọi hệ thống ổn định",
@@ -2275,5 +2277,49 @@
     "unavailable": "Tính năng đặt lại hiện không khả dụng.",
     "rate_limited": "Yêu cầu bị giới hạn tốc độ.",
     "auth_error": "Ủy quyền đã bị từ chối."
+  },
+  "sessions": {
+    "title": "Phiên và định tuyến",
+    "description": "Hội thoại giữ nguyên tài khoản. Hạn mức và tải gần đây dùng để phân bổ phiên mới.",
+    "refresh": "Làm mới",
+    "load_failed": "Không tải được định tuyến phiên. Trang này cần bản fork máy chủ tương ứng.",
+    "action_failed": "Thay đổi định tuyến thất bại.",
+    "refresh_first": "Kết nối đã đổi. Hãy làm mới trước khi thay đổi định tuyến.",
+    "disabled": "Chọn chiến lược session-balanced để lưu liên kết tài khoản lâu dài.",
+    "open_config": "Mở cấu hình",
+    "accounts": "Tài khoản",
+    "account_help": "Tạm ngừng phân bổ mới vẫn giữ tài khoản cho hội thoại hiện có. Tải gần đây đếm các phiên hoạt động trong 15 phút qua.",
+    "headroom": "Hạn mức còn lại đã quan sát",
+    "observed": "Lần quan sát cuối",
+    "recent": "Phiên gần đây",
+    "status": "Trạng thái",
+    "unknown": "Chưa biết",
+    "unavailable": "Không khả dụng",
+    "draining": "Ngừng nhận phiên mới",
+    "accepting": "Đang nhận phiên mới",
+    "resume": "Nhận phiên mới",
+    "drain": "Ngừng phân bổ mới",
+    "conversations": "Hội thoại",
+    "empty": "Chưa có hội thoại nào được định tuyến.",
+    "account": "Tài khoản được ghim",
+    "reason": "Lý do phân bổ",
+    "last_seen": "Hoạt động cuối",
+    "cache_read": "Tỷ lệ đầu vào đọc từ bộ nhớ đệm",
+    "tokens": "Token đầu vào / đầu ra",
+    "cache_write": "Token ghi bộ nhớ đệm",
+    "partial_usage": "Một số yêu cầu không cung cấp thống kê token đầy đủ.",
+    "pending": "Thay đổi đang chờ",
+    "history": "Lịch sử chuyển tài khoản",
+    "choose_account": "Chọn tài khoản khác",
+    "move": "Yêu cầu chuyển",
+    "move_help": "Chuyển đổi áp dụng ở yêu cầu an toàn tiếp theo. Kết nối có trạng thái có thể cần kết nối lại và gửi toàn bộ lịch sử.",
+    "strategy": "Cân bằng phiên (ghim lâu dài)",
+    "details": "Chi tiết phiên",
+    "parent": "Phiên cha",
+    "caller": "Phạm vi máy khách",
+    "generation": "Phiên bản liên kết",
+    "created": "Hoạt động đầu tiên",
+    "expires": "Hết hạn khi không hoạt động",
+    "results": "Yêu cầu thành công / thất bại"
   }
 }

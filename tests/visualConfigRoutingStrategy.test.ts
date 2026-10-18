@@ -12,6 +12,7 @@ describe('visual config weighted routing strategy', () => {
     expect(parseRoutingStrategy('fill-first')).toBe('fill-first');
     expect(parseRoutingStrategy('fillfirst')).toBe('fill-first');
     expect(parseRoutingStrategy('ff')).toBe('fill-first');
+    expect(parseRoutingStrategy('session-balanced')).toBe('session-balanced');
     expect(parseRoutingStrategy(undefined)).toBe('round-robin');
   });
 
@@ -39,4 +40,23 @@ describe('visual config weighted routing strategy', () => {
 
     expect(parseYaml(result)).toEqual({ routing: { strategy: 'weighted-round-robin' } });
   });
+});
+
+test('preserves session-balanced when editing unrelated configuration', () => {
+  function Harness() {
+    const cfg = useVisualConfig();
+    const [ready, setReady] = useState(false);
+    if (!ready) {
+      cfg.loadVisualValuesFromYaml('routing:\n  strategy: session-balanced\n');
+      setReady(true);
+      return null;
+    }
+    return createElement(
+      'pre',
+      null,
+      cfg.applyVisualChangesToYaml('routing:\n  strategy: session-balanced\n')
+    );
+  }
+  const html = renderToStaticMarkup(createElement(Harness));
+  expect(parseYaml(html.slice(5, -6)).routing.strategy).toBe('session-balanced');
 });

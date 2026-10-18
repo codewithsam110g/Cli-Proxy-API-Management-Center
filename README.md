@@ -1,5 +1,7 @@
 <div align="center">
 
+This fork adds a [persistent session routing dashboard](FORK.md) for the matching backend fork.
+
 <img src="./logo.jpg" alt="CLI Proxy API" width="144">
 
 # CLI Proxy API Management Center

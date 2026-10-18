@@ -107,7 +107,8 @@
     "plugin_store": "Plugin Store",
     "config_management": "Config Panel",
     "logs": "Logs Viewer",
-    "system_info": "Management Center Info"
+    "system_info": "Management Center Info",
+    "sessions": "Sessions & routing"
   },
   "nav_groups": {
     "operate": "Operate",
@@ -127,7 +128,8 @@
     "plugin_store": "Discover & install plugins",
     "logs": "Request tracing",
     "config_management": "Gateway configuration",
-    "system_info": "Runtime & diagnostics"
+    "system_info": "Runtime & diagnostics",
+    "sessions": "Conversations keep their account. Quota and recent workload guide new assignments."
   },
   "dashboard": {
     "hero_verdict_good": "All systems steady",
@@ -2269,5 +2271,49 @@
     "unavailable": "Resets are currently unavailable.",
     "rate_limited": "Request rate limited.",
     "auth_error": "Authorization was refused."
+  },
+  "sessions": {
+    "title": "Sessions & routing",
+    "description": "Conversations keep their account. Quota and recent workload guide new assignments.",
+    "refresh": "Refresh",
+    "load_failed": "Unable to load session routing. This page requires the matching backend fork.",
+    "action_failed": "Routing change failed.",
+    "refresh_first": "Connection changed. Refresh before changing routing.",
+    "disabled": "Choose session-balanced as the routing strategy to enable persistent account pinning.",
+    "open_config": "Open configuration",
+    "accounts": "Accounts",
+    "account_help": "Drain stops new assignments while existing conversations keep their account. Recent load counts sessions used in the last 15 minutes.",
+    "headroom": "Observed headroom",
+    "observed": "Last observation",
+    "recent": "Recent sessions",
+    "status": "Status",
+    "unknown": "Unknown",
+    "unavailable": "Unavailable",
+    "draining": "Draining",
+    "accepting": "Accepting new sessions",
+    "resume": "Accept new sessions",
+    "drain": "Drain account",
+    "conversations": "Conversations",
+    "empty": "No conversations have been routed yet.",
+    "account": "Pinned account",
+    "reason": "Placement reason",
+    "last_seen": "Last activity",
+    "cache_read": "Input read from cache",
+    "tokens": "Input / output tokens",
+    "cache_write": "Cache-write tokens",
+    "partial_usage": "Some requests did not provide complete token accounting.",
+    "pending": "Pending change",
+    "history": "Account moves",
+    "choose_account": "Choose another account",
+    "move": "Request move",
+    "move_help": "A requested move applies on the next safe request. A stateful connection may need to reconnect and resend full history.",
+    "strategy": "Session balanced (persistent pins)",
+    "details": "Session details",
+    "parent": "Parent session",
+    "caller": "Caller scope",
+    "generation": "Binding generation",
+    "created": "First activity",
+    "expires": "Idle expiry",
+    "results": "Successful / failed requests"
   }
 }

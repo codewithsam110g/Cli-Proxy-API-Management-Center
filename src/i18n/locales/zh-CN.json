@@ -107,7 +107,8 @@
     "plugin_store": "插件商店",
     "config_management": "配置面板",
     "logs": "日志查看",
-    "system_info": "中心信息"
+    "system_info": "中心信息",
+    "sessions": "会话与路由"
   },
   "nav_groups": {
     "operate": "运行",
@@ -127,7 +128,8 @@
     "plugin_store": "发现并安装插件",
     "logs": "请求追踪与排查",
     "config_management": "网关基础配置",
-    "system_info": "运行与诊断信息"
+    "system_info": "运行与诊断信息",
+    "sessions": "对话固定使用同一账户。配额和近期负载用于分配新会话。"
   },
   "dashboard": {
     "hero_verdict_good": "运行平稳",
@@ -2268,5 +2270,49 @@
     "unavailable": "重置暂不可用。",
     "rate_limited": "请求过于频繁。",
     "auth_error": "授权被拒绝。"
+  },
+  "sessions": {
+    "title": "会话与路由",
+    "description": "对话固定使用同一账户。配额和近期负载用于分配新会话。",
+    "refresh": "刷新",
+    "load_failed": "无法加载会话路由。此页面需要配套的后端分支。",
+    "action_failed": "路由修改失败。",
+    "refresh_first": "连接已更改，请刷新后再修改路由。",
+    "disabled": "选择 session-balanced 路由策略以启用持久账户绑定。",
+    "open_config": "打开配置",
+    "accounts": "账户",
+    "account_help": "暂停接收新会话时，现有对话仍使用原账户。近期负载统计过去 15 分钟活跃的会话。",
+    "headroom": "已观测剩余配额",
+    "observed": "最后观测时间",
+    "recent": "近期会话",
+    "status": "状态",
+    "unknown": "未知",
+    "unavailable": "不可用",
+    "draining": "暂停接收新会话",
+    "accepting": "接收新会话",
+    "resume": "恢复接收新会话",
+    "drain": "暂停新分配",
+    "conversations": "对话",
+    "empty": "尚无已路由的对话。",
+    "account": "绑定账户",
+    "reason": "分配原因",
+    "last_seen": "最后活动",
+    "cache_read": "缓存读取占输入比例",
+    "tokens": "输入 / 输出令牌",
+    "cache_write": "缓存写入令牌",
+    "partial_usage": "部分请求未提供完整的令牌统计。",
+    "pending": "待处理更改",
+    "history": "账户迁移记录",
+    "choose_account": "选择其他账户",
+    "move": "请求迁移",
+    "move_help": "迁移将在下一个安全请求时生效。有状态连接可能需要重新连接并发送完整历史。",
+    "strategy": "会话均衡（持久绑定）",
+    "details": "会话详情",
+    "parent": "父会话",
+    "caller": "调用方范围",
+    "generation": "绑定版本",
+    "created": "首次活动",
+    "expires": "空闲到期",
+    "results": "成功 / 失败请求"
   }
 }

@@ -641,6 +641,12 @@ export function MainLayout() {
       labelKey: 'nav_groups.observe',
       items: [
         {
+          path: '/sessions',
+          labelKey: 'nav.sessions',
+          metaKey: 'nav_meta.sessions',
+          icon: sidebarIcons.quota,
+        },
+        {
           path: '/quota',
           labelKey: 'nav.quota_management',
           metaKey: 'nav_meta.quota_management',
