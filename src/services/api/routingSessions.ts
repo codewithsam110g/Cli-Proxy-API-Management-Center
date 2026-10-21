@@ -10,6 +10,8 @@ export interface RoutingAccount {
   recentSessions: number;
   remainingPercent: number | null;
   observedAt: string;
+  quotaStopped: boolean;
+  quotaStopReason: string;
 }
 export interface RoutingSession {
   id: string;
@@ -71,6 +73,8 @@ export function normalizeRoutingSnapshot(value: unknown): RoutingSnapshot {
           ? a.remaining_percent
           : null,
       observedAt: text(a.observed_at),
+      quotaStopped: a.quota_stopped === true,
+      quotaStopReason: text(a.quota_stop_reason),
     })),
     sessions: value.sessions.filter(isRecord).map((s) => ({
       id: text(s.id),

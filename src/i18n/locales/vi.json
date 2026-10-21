@@ -2279,6 +2279,8 @@
     "auth_error": "Ủy quyền đã bị từ chối."
   },
   "sessions": {
+    "quota_stopped": "Dừng theo hạn mức",
+    "quota_stop_help": "Khi một trong hai cửa sổ hạn mức còn 1% trở xuống, tài khoản ngừng nhận yêu cầu. Hội thoại chuyển tài khoản ở yêu cầu an toàn tiếp theo.",
     "title": "Phiên và định tuyến",
     "description": "Hội thoại giữ nguyên tài khoản. Hạn mức và tải gần đây dùng để phân bổ phiên mới.",
     "refresh": "Làm mới",

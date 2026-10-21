@@ -2272,6 +2272,8 @@
     "auth_error": "授权被拒绝。"
   },
   "sessions": {
+    "quota_stopped": "额度停用",
+    "quota_stop_help": "任一额度窗口剩余不超过 1% 时，此账户将停止接收请求。会话会在下一次安全请求时迁移。",
     "title": "会话与路由",
     "description": "对话固定使用同一账户。配额和近期负载用于分配新会话。",
     "refresh": "刷新",

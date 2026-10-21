@@ -33,4 +33,21 @@ describe('session routing observations', () => {
       false
     );
   });
+  test('retains a quota stop even when the scoring observation is unknown', () => {
+    const result = normalizeRoutingSnapshot({
+      enabled: true,
+      sessions: [],
+      accounts: [
+        {
+          id: 'stopped',
+          remaining_percent: null,
+          quota_stopped: true,
+          quota_stop_reason: 'confirmed credential quota',
+        },
+      ],
+    });
+    expect(result.accounts[0].remainingPercent).toBeNull();
+    expect(result.accounts[0].quotaStopped).toBe(true);
+    expect(result.accounts[0].quotaStopReason).toBe('confirmed credential quota');
+  });
 });

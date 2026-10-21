@@ -138,11 +138,14 @@ export function SessionsPage() {
                     <dd>
                       {account.disabled
                         ? t('sessions.unavailable')
-                        : account.draining
-                          ? t('sessions.draining')
-                          : t('sessions.accepting')}
+                        : account.quotaStopped
+                          ? t('sessions.quota_stopped')
+                          : account.draining
+                            ? t('sessions.draining')
+                            : t('sessions.accepting')}
                     </dd>
                   </dl>
+                  {account.quotaStopped && <p>{t('sessions.quota_stop_help')}</p>}
                   <Button
                     variant="secondary"
                     size="sm"
@@ -168,6 +171,7 @@ export function SessionsPage() {
                     a.id !== session.authId &&
                     a.provider === session.provider &&
                     !a.disabled &&
+                    !a.quotaStopped &&
                     !a.draining
                 );
                 return (
