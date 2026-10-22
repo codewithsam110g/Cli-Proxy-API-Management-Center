@@ -154,6 +154,57 @@ export function SectionNetwork({
         />
       </SettingList>
 
+      <SettingList
+        title={t('config_management.visual.sections.network.session_quota_title')}
+        description={t('config_management.visual.sections.network.session_quota_description')}
+      >
+        <TextSetting
+          fieldId="routingSessionQuotaShortReserve"
+          size="sm"
+          label={t('config_management.visual.additions.routingSessionQuotaShortReserve.label')}
+          description={t('config_management.visual.additions.routingSessionQuotaShortReserve.hint')}
+          type="number"
+          min={0}
+          max={50}
+          placeholder="5"
+          value={values.routingSessionQuotaShortReserve}
+          onChange={(routingSessionQuotaShortReserve) =>
+            onChange({ routingSessionQuotaShortReserve })
+          }
+          disabled={disabled}
+          error={getValidationMessage(t, validationErrors?.routingSessionQuotaShortReserve)}
+        />
+        <TextSetting
+          fieldId="routingSessionQuotaLongReserve"
+          size="sm"
+          label={t('config_management.visual.additions.routingSessionQuotaLongReserve.label')}
+          description={t('config_management.visual.additions.routingSessionQuotaLongReserve.hint')}
+          type="number"
+          min={0}
+          max={50}
+          placeholder="2"
+          value={values.routingSessionQuotaLongReserve}
+          onChange={(routingSessionQuotaLongReserve) =>
+            onChange({ routingSessionQuotaLongReserve })
+          }
+          disabled={disabled}
+          error={getValidationMessage(t, validationErrors?.routingSessionQuotaLongReserve)}
+        />
+        <TextSetting
+          fieldId="routingSessionQuotaPollInterval"
+          size="sm"
+          label={t('config_management.visual.additions.routingSessionQuotaPollInterval.label')}
+          description={t('config_management.visual.additions.routingSessionQuotaPollInterval.hint')}
+          placeholder="5m"
+          value={values.routingSessionQuotaPollInterval}
+          onChange={(routingSessionQuotaPollInterval) =>
+            onChange({ routingSessionQuotaPollInterval })
+          }
+          disabled={disabled}
+          error={getValidationMessage(t, validationErrors?.routingSessionQuotaPollInterval)}
+        />
+      </SettingList>
+
       <SettingList>
         <ToggleSetting
           fieldId="routingSessionAffinitySubagents"

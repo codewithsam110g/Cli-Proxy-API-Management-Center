@@ -44,16 +44,26 @@ describe('visual config additions', () => {
       const doc = parseDocument(
         'api-keys: {codex: [{future: untouched}]}\n# retained\nfuture: true\n'
       );
-      const originalValue = kind === 'boolean' ? true : kind === 'integer' ? 0 : 'original';
+      const originalValue =
+        kind === 'boolean' ? true : kind === 'integer' ? 0 : kind === 'number' ? 2.5 : 'original';
       doc.setIn(path, originalValue);
       const yaml = doc.toString();
       const loaded = runVisualConfig(yaml);
       expect(loaded.visualValues[key]).toBe(kind === 'boolean' ? true : String(originalValue));
       expect(loaded.visualDirty).toBe(false);
-      const value = kind === 'boolean' ? false : kind === 'integer' ? '-1' : 'changed';
+      const value =
+        kind === 'boolean'
+          ? false
+          : kind === 'integer'
+            ? '-1'
+            : kind === 'number'
+              ? '7.5'
+              : 'changed';
       const config = runVisualConfig(yaml, [{ [key]: value }]);
       const output = config.applyVisualChangesToYaml(yaml);
-      expect(parseDocument(output).getIn(path)).toBe(kind === 'integer' ? -1 : value);
+      expect(parseDocument(output).getIn(path)).toBe(
+        kind === 'integer' ? -1 : kind === 'number' ? 7.5 : value
+      );
       expect(parseDocument(output).toJS()['api-keys']).toEqual(doc.toJS()['api-keys']);
       expect(output).toContain('# retained');
       expect([...config.visualDirtyFields]).toEqual([key]);

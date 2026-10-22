@@ -73,6 +73,9 @@ export const SECTION_VALIDATION_FIELDS: Record<VisualSectionId, readonly VisualC
       'authAutoRefreshWorkers',
       'transientErrorCooldownSeconds',
       'videoResultAuthCacheTTL',
+      'routingSessionQuotaShortReserve',
+      'routingSessionQuotaLongReserve',
+      'routingSessionQuotaPollInterval',
     ],
     logging: ['errorLogsMaxFiles', 'logsMaxTotalSizeMb', 'redisUsageQueueRetentionSeconds'],
     streaming: [
@@ -101,6 +104,9 @@ export const SECTION_VALIDATION_FIELDS: Record<VisualSectionId, readonly VisualC
  */
 export const FIELD_VALUE_KEYS: Record<string, readonly string[]> = {
   routingSessionAffinitySubagents: ['routingSessionAffinitySubagents'],
+  routingSessionQuotaShortReserve: ['routingSessionQuotaShortReserve'],
+  routingSessionQuotaLongReserve: ['routingSessionQuotaLongReserve'],
+  routingSessionQuotaPollInterval: ['routingSessionQuotaPollInterval'],
   saveCooldownStatus: ['saveCooldownStatus'],
   transientErrorCooldownSeconds: ['transientErrorCooldownSeconds'],
   videoResultAuthCacheTTL: ['videoResultAuthCacheTTL'],

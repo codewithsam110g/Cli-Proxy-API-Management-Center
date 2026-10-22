@@ -17,6 +17,21 @@ export const ADDITION_FIELDS = [
     kind: 'boolean',
   },
   {
+    key: 'routingSessionQuotaShortReserve',
+    path: 'routing.session-quota.short-window-reserve-percent'.split('.'),
+    kind: 'number',
+  },
+  {
+    key: 'routingSessionQuotaLongReserve',
+    path: 'routing.session-quota.long-window-reserve-percent'.split('.'),
+    kind: 'number',
+  },
+  {
+    key: 'routingSessionQuotaPollInterval',
+    path: 'routing.session-quota.poll-interval'.split('.'),
+    kind: 'string',
+  },
+  {
     key: 'saveCooldownStatus',
     path: 'routing.cooldown.save-cooldown-status'.split('.'),
     kind: 'boolean',
@@ -137,6 +152,8 @@ export const ADDITION_FIELDS = [
     kind: 'integer',
   },
 ] as const;
+const MAX_SESSION_QUOTA_RESERVE = 50;
+const MIN_POLL_SECONDS = 60;
 export const ICE_KEY = 'codexLiveMediaRelayICEServers';
 export const ICE_PATH = ['oauth', 'providers', 'codex', 'live-media-relay', 'ice-servers'];
 type Doc = ReturnType<typeof parseDocument>;
@@ -172,6 +189,17 @@ function parents(doc: Doc, path: string[]) {
     if (!isMap(doc.getIn(parent, true))) doc.setIn(parent, doc.createNode({}));
   }
 }
+/** Non-negative decimal as YAML/Go would read it: "5", "2.5", ".5". */
+const isDecimal = (text: string) =>
+  /^(?:\d+\.?\d*|\.\d+)$/.test(text) && Number.isFinite(Number(text));
+const SESSION_QUOTA_PATH = ['routing', 'session-quota'];
+/** Clearing the last reserve/interval should not leave an empty `session-quota: {}` behind. */
+function pruneEmptySessionQuota(doc: Doc, path: string[]) {
+  if (path.length <= SESSION_QUOTA_PATH.length) return;
+  if (!SESSION_QUOTA_PATH.every((part, index) => path[index] === part)) return;
+  const node = doc.getIn(SESSION_QUOTA_PATH, true);
+  if (isMap(node) && node.items.length === 0) doc.deleteIn(SESSION_QUOTA_PATH);
+}
 export const iceURLs = (text: string) =>
   text
     .split('\n')
@@ -187,6 +215,7 @@ export function writeVisualAdditions(
     const value = values[key];
     if (typeof value === 'string' && !value.trim()) {
       doc.deleteIn(path);
+      pruneEmptySessionQuota(doc, path);
       continue;
     }
     if (
@@ -194,8 +223,10 @@ export function writeVisualAdditions(
       (!/^-?\d+$/.test(String(value).trim()) || !Number.isSafeInteger(Number(value)))
     )
       continue;
+    // Validation blocks an unparsable reserve; never write NaN if a caller skips it.
+    if (kind === 'number' && !isDecimal(String(value).trim())) continue;
     parents(doc, path);
-    doc.setIn(path, kind === 'integer' ? Number(value) : value);
+    doc.setIn(path, kind === 'integer' || kind === 'number' ? Number(String(value).trim()) : value);
   }
 }
 /** Build from the loaded/draft AST, not the latest list's positional nodes. */
@@ -297,6 +328,9 @@ export function validateVisualAdditions(
   const errors: VisualConfigValidationErrors = {
     transientErrorCooldownSeconds: undefined,
     videoResultAuthCacheTTL: undefined,
+    routingSessionQuotaShortReserve: undefined,
+    routingSessionQuotaLongReserve: undefined,
+    routingSessionQuotaPollInterval: undefined,
     claudeHeaderTimezone: undefined,
     codexStreamBootstrapTimeout: undefined,
     antigravityConnectionPoolIdleTimeout: undefined,
@@ -307,6 +341,23 @@ export function validateVisualAdditions(
     codexLiveMediaRelayUDPPortMax: undefined,
     codexLiveMediaRelayICEServers: undefined,
   };
+  // Mirrors the backend (routing.session-quota): reserves 0..50, interval 0 or at least 1m.
+  for (const key of [
+    'routingSessionQuotaShortReserve',
+    'routingSessionQuotaLongReserve',
+  ] as const) {
+    const value = values[key].trim();
+    if (value && (!isDecimal(value) || Number(value) > MAX_SESSION_QUOTA_RESERVE)) {
+      errors[key] = 'reserve_range';
+    }
+  }
+  const pollInterval = values.routingSessionQuotaPollInterval.trim();
+  if (pollInterval) {
+    const seconds = goDurationSeconds(pollInterval);
+    if (seconds === undefined || seconds < 0 || (seconds > 0 && seconds < MIN_POLL_SECONDS)) {
+      errors.routingSessionQuotaPollInterval = 'invalid_poll_interval';
+    }
+  }
   for (const { key, kind } of ADDITION_FIELDS) {
     const value = String(values[key]).trim();
     if (!value || kind !== 'integer') continue;

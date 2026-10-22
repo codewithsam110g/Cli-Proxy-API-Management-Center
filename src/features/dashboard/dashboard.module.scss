@@ -64,6 +64,21 @@
   -webkit-mask-composite: source-in;
 }
 
+/* ---------- Account quota / live conversations ---------- */
+
+.routing {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-xl;
+
+  /* Both panels render nothing when disconnected; do not leave an empty row of page gap. */
+  &:empty {
+    display: none;
+  }
+}
+
 /* ---------- Hero ---------- */
 
 .hero {

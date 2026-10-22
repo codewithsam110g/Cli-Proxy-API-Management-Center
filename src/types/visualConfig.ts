@@ -18,6 +18,9 @@ export type VisualConfigFieldPath =
   | 'discoveryServiceType'
   | 'transientErrorCooldownSeconds'
   | 'videoResultAuthCacheTTL'
+  | 'routingSessionQuotaShortReserve'
+  | 'routingSessionQuotaLongReserve'
+  | 'routingSessionQuotaPollInterval'
   | 'claudeHeaderTimezone'
   | 'codexStreamBootstrapTimeout'
   | 'antigravityConnectionPoolIdleTimeout'
@@ -53,7 +56,9 @@ export type VisualConfigValidationErrorCode =
   | 'port_range'
   | 'integer'
   | 'non_negative_integer'
-  | 'integer_range_1_3600';
+  | 'integer_range_1_3600'
+  | 'reserve_range'
+  | 'invalid_poll_interval';
 
 export type VisualConfigValidationErrors = Partial<
   Record<VisualConfigFieldPath, VisualConfigValidationErrorCode>
@@ -129,6 +134,9 @@ export type VisualConfigValues = {
   discoveryAdvertiseManagement: boolean;
 
   routingSessionAffinitySubagents: boolean;
+  routingSessionQuotaShortReserve: string;
+  routingSessionQuotaLongReserve: string;
+  routingSessionQuotaPollInterval: string;
   saveCooldownStatus: boolean;
   transientErrorCooldownSeconds: string;
   videoResultAuthCacheTTL: string;
@@ -232,6 +240,9 @@ export const DEFAULT_VISUAL_VALUES: VisualConfigValues = {
   discoveryAdvertiseManagement: false,
 
   routingSessionAffinitySubagents: true,
+  routingSessionQuotaShortReserve: '',
+  routingSessionQuotaLongReserve: '',
+  routingSessionQuotaPollInterval: '',
   saveCooldownStatus: false,
   transientErrorCooldownSeconds: '',
   videoResultAuthCacheTTL: '',

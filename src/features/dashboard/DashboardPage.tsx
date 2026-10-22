@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import {
@@ -13,6 +13,10 @@ import { useAuthStore } from '@/stores';
 import { useHeaderRefresh } from '@/hooks/useHeaderRefresh';
 import { formatCompactNumber, formatDateValue, formatPercent } from '@/utils/format';
 import { useDashboardOverview } from './hooks/useDashboardOverview';
+import { AccountsPanel } from '@/features/sessions/components/AccountsPanel';
+import { ConversationsPanel } from '@/features/sessions/components/ConversationsPanel';
+import { useCodexResets } from '@/features/sessions/useCodexResets';
+import { useRoutingOverview } from '@/features/sessions/useRoutingOverview';
 import { LiveWire } from './components/LiveWire';
 import { Meter } from './components/Meter';
 import { Sparkline } from './components/Sparkline';
@@ -42,8 +46,16 @@ export function DashboardPage() {
 
   const { connectionStatus, connected, config, counts, traffic, providers, credentials, refresh } =
     useDashboardOverview();
+  const routing = useRoutingOverview();
+  const resets = useCodexResets(routing);
+  const { refreshAll: refreshRouting } = routing;
+  const { reload: reloadResets } = resets;
 
-  useHeaderRefresh(refresh, connected);
+  /* The header refresh also asks the backend to re-check account quota (it reuses polls < 15 s old). */
+  const refreshEverything = useCallback(async () => {
+    await Promise.all([refresh(), refreshRouting(), reloadResets()]);
+  }, [refresh, refreshRouting, reloadResets]);
+  useHeaderRefresh(refreshEverything, connected);
 
   /* Hero 与静态网格走分组级联；异步内容区（图表/供应商）保持整块 reveal */
   const heroRef = useRevealGroup<HTMLElement>();
@@ -226,6 +238,16 @@ export function DashboardPage() {
       <div className={styles.ambient} aria-hidden="true">
         <span className={styles.washTop} />
         <span className={styles.gridWash} />
+      </div>
+
+      {/* ---------- Account quota and live conversations (session-balanced routing) ---------- */}
+      <div className={styles.routing}>
+        <AccountsPanel
+          routing={routing}
+          resets={resets}
+          eyebrow={t('dashboard.accounts_eyebrow')}
+        />
+        <ConversationsPanel routing={routing} eyebrow={t('dashboard.conversations_eyebrow')} />
       </div>
 
       {/* ---------- Hero ---------- */}

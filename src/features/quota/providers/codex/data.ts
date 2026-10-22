@@ -44,7 +44,7 @@ import type { QuotaProviderData } from '../types';
 
 const CODEX_OPTIONAL_REQUEST_TIMEOUT_MS = 8000;
 
-type CodexResetCreditsData = {
+export type CodexResetCreditsData = {
   availableCount: number | null;
   applicableAvailableCount: number | null;
   credits: CodexRateLimitResetCredit[];
@@ -413,6 +413,26 @@ const fetchCodexResetCredits = async (
       error: err instanceof Error ? err.message : t('common.unknown_error'),
     };
   }
+};
+
+/**
+ * Reset credits alone, for surfaces that do not need the full usage fetch (the routing
+ * dashboard). Failures come back in `error` instead of throwing, like the quota page's call.
+ */
+export const fetchCodexResetCreditsForFile = async (
+  file: AuthFileItem,
+  t: TFunction
+): Promise<CodexResetCreditsData> => {
+  const authIndex = normalizeAuthIndex(file['auth_index'] ?? file.authIndex);
+  if (!authIndex) {
+    return {
+      availableCount: null,
+      applicableAvailableCount: null,
+      credits: [],
+      error: t('codex_quota.missing_auth_index'),
+    };
+  }
+  return fetchCodexResetCredits(authIndex, buildCodexRequestHeader(file), t);
 };
 
 const fetchCodexQuota = async (file: AuthFileItem, t: TFunction): Promise<CodexQuotaData> => {

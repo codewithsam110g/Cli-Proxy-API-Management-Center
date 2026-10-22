@@ -178,6 +178,8 @@ describe('v8 scalar read/write path parity', () => {
     'maxRetryInterval',
     'authAutoRefreshWorkers',
     'transientErrorCooldownSeconds',
+    'routingSessionQuotaShortReserve',
+    'routingSessionQuotaLongReserve',
     'antigravityConnectionPoolMaxIdleConnsPerHost',
     'codexLiveMediaRelayMaxSessions',
     'codexLiveMediaRelayUDPPortMin',
