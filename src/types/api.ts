@@ -7,6 +7,7 @@
 export interface ApiClientConfig {
   apiBase: string;
   managementKey: string;
+  portalToken?: string;
   timeout?: number;
 }
 

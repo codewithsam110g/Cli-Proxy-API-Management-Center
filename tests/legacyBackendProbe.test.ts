@@ -8,6 +8,7 @@ import { useConfigStore } from '@/stores/useConfigStore';
 const spies: Array<{ mockRestore(): void }> = [];
 const originalFetchConfig = useConfigStore.getState().fetchConfig;
 const originalStorage = Object.getOwnPropertyDescriptor(globalThis, 'localStorage');
+const originalSessionStorage = Object.getOwnPropertyDescriptor(globalThis, 'sessionStorage');
 const originalWindow = Object.getOwnPropertyDescriptor(globalThis, 'window');
 const memory = new Map<string, string>();
 beforeAll(() => {
@@ -19,12 +20,19 @@ beforeAll(() => {
       removeItem: (key: string) => memory.delete(key),
     },
   });
+  Object.defineProperty(globalThis, 'sessionStorage', {
+    configurable: true,
+    value: { getItem: () => null, setItem: () => {}, removeItem: () => {} },
+  });
   Object.defineProperty(globalThis, 'window', {
     configurable: true,
     value: { location: { host: 'proxy.invalid' } },
   });
 });
 afterAll(() => {
+  if (originalSessionStorage)
+    Object.defineProperty(globalThis, 'sessionStorage', originalSessionStorage);
+  else Reflect.deleteProperty(globalThis, 'sessionStorage');
   if (originalStorage) Object.defineProperty(globalThis, 'localStorage', originalStorage);
   else Reflect.deleteProperty(globalThis, 'localStorage');
   if (originalWindow) Object.defineProperty(globalThis, 'window', originalWindow);

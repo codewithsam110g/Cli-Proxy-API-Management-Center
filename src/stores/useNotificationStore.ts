@@ -31,65 +31,58 @@ interface NotificationState {
   showConfirmation: (options: ConfirmationOptions) => void;
   hideConfirmation: () => void;
   setConfirmationLoading: (loading: boolean) => void;
+  resetForConnection: () => void;
 }
 
-export const useNotificationStore = create<NotificationState>((set) => ({
-  notifications: [],
-  confirmation: {
-    isOpen: false,
-    isLoading: false,
-    options: null,
-  },
-
-  showNotification: (message, type = 'info', duration = NOTIFICATION_DURATION_MS) => {
-    const id = generateId();
-    const notification: Notification = {
-      id,
-      message,
-      type,
-      duration,
+export const useNotificationStore = create<NotificationState>((set) => {
+  let generation = 0;
+  const scopedActions = () => {
+    const scope = ++generation;
+    return {
+      showNotification: (
+        message: string,
+        type: NotificationType = 'info',
+        duration = NOTIFICATION_DURATION_MS
+      ) => {
+        if (scope !== generation) return;
+        const notification: Notification = { id: generateId(), message, type, duration };
+        set((state) => ({ notifications: [...state.notifications, notification] }));
+      },
+      showConfirmation: (options: ConfirmationOptions) => {
+        if (scope !== generation) return;
+        set({ confirmation: { isOpen: true, isLoading: false, options } });
+      },
+      hideConfirmation: () => {
+        if (scope !== generation) return;
+        set({ confirmation: { isOpen: false, isLoading: false, options: null } });
+      },
+      setConfirmationLoading: (loading: boolean) => {
+        if (scope !== generation) return;
+        set((state) => ({ confirmation: { ...state.confirmation, isLoading: loading } }));
+      },
     };
+  };
+  return {
+    notifications: [],
+    confirmation: {
+      isOpen: false,
+      isLoading: false,
+      options: null,
+    },
 
-    set((state) => ({
-      notifications: [...state.notifications, notification],
-    }));
+    ...scopedActions(),
+    // Rotate action identities so callbacks held by the old principal cannot publish UI state.
+    resetForConnection: () =>
+      set({
+        ...scopedActions(),
+        notifications: [],
+        confirmation: { isOpen: false, isLoading: false, options: null },
+      }),
 
-    // NotificationContainer owns readable-time expiry and cleans up timers on unmount.
-    // Keeping timers out of the store allows hover/focus/hidden-tab pauses.
-  },
-
-  removeNotification: (id) => {
-    set((state) => ({
-      notifications: state.notifications.filter((n) => n.id !== id),
-    }));
-  },
-
-  showConfirmation: (options) => {
-    set({
-      confirmation: {
-        isOpen: true,
-        isLoading: false,
-        options,
-      },
-    });
-  },
-
-  hideConfirmation: () => {
-    set((state) => ({
-      confirmation: {
-        ...state.confirmation,
-        isOpen: false,
-        options: null, // Cleanup
-      },
-    }));
-  },
-
-  setConfirmationLoading: (loading) => {
-    set((state) => ({
-      confirmation: {
-        ...state.confirmation,
-        isLoading: loading,
-      },
-    }));
-  },
-}));
+    removeNotification: (id) => {
+      set((state) => ({
+        notifications: state.notifications.filter((n) => n.id !== id),
+      }));
+    },
+  };
+});

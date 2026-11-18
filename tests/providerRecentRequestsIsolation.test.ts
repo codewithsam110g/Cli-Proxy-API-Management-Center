@@ -29,3 +29,14 @@ describe('provider recent request cache isolation', () => {
     expect(controller.forScope('https://server.example', 'key-b')).not.toBe(first);
   });
 });
+
+test('same credentials in a new generation and explicit clearing discard cached usage', () => {
+  const controller = createProviderRecentRequestsCacheController();
+  const first = controller.forScope('http://example.invalid', 'fixture', 1);
+  first.cachedAt = 123;
+  const second = controller.forScope('http://example.invalid', 'fixture', 2);
+  expect(second).not.toBe(first);
+  expect(second.cachedAt).toBe(0);
+  controller.clear();
+  expect(controller.forScope('http://example.invalid', 'fixture', 2)).not.toBe(second);
+});

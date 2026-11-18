@@ -1,3 +1,4 @@
+import { apiClient } from '@/services/api/client';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
@@ -136,7 +137,7 @@ function PluginInstallOptionsModal({
   const releasePageURL =
     entry && supportsVersionSelection ? buildGitHubReleasesPageURL(entry.repository) : '';
   const releaseCacheKey = entryKey
-    ? `${entryKey}|${entryRepository.trim()}|${entry?.installType.trim().toLowerCase() ?? ''}`
+    ? `${apiClient.getConnectionRevision()}|${entryKey}|${entryRepository.trim()}|${entry?.installType.trim().toLowerCase() ?? ''}`
     : '';
 
   if (releaseCacheKey !== loadedReleaseKey) {

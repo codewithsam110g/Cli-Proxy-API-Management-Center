@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import { modelsApi } from '@/services/api/models';
+import { clearModelDiscoveryRequests, modelsApi } from '@/services/api/models';
 import { CACHE_EXPIRY_MS } from '@/utils/constants';
 import type { ModelInfo } from '@/utils/models';
 
@@ -78,6 +78,7 @@ export const useModelsStore = create<ModelsState>((set, get) => ({
 
   clearCache: () => {
     modelsRequestToken += 1;
+    clearModelDiscoveryRequests();
     set({ cache: null, models: [], loading: false, error: null });
   },
 

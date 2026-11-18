@@ -16,10 +16,16 @@ import {
 import { computeApiUrl } from '@/utils/connection';
 import { parseApiErrorResponse } from './apiError';
 
+interface ScopedConfig extends AxiosRequestConfig {
+  revision?: number;
+  authenticated?: boolean;
+}
+
 class ApiClient {
   private instance: AxiosInstance;
   private apiBase: string = '';
   private managementKey: string = '';
+  private portalToken: string = '';
   private connectionRevision = 0;
 
   constructor(private readonly emitEvents: () => boolean = () => true) {
@@ -38,11 +44,10 @@ class ApiClient {
    */
   setConfig(config: ApiClientConfig): void {
     const apiBase = computeApiUrl(config.apiBase);
-    if (apiBase !== this.apiBase || config.managementKey !== this.managementKey) {
-      this.connectionRevision += 1;
-    }
+    this.connectionRevision += 1;
     this.apiBase = apiBase;
     this.managementKey = config.managementKey;
+    this.portalToken = config.portalToken || '';
 
     if (config.timeout) {
       this.instance.defaults.timeout = config.timeout;
@@ -62,6 +67,7 @@ class ApiClient {
     const client = new ApiClient(() => this.connectionRevision === revision);
     client.apiBase = this.apiBase;
     client.managementKey = this.managementKey;
+    client.portalToken = this.portalToken;
     return client;
   }
 
@@ -120,22 +126,6 @@ class ApiClient {
    * Set request/response interceptors
    */
   private setupInterceptors(): void {
-    // Request interceptor
-    this.instance.interceptors.request.use(
-      (config) => {
-        // Set baseURL
-        config.baseURL = this.apiBase;
-
-        // Add authorization header
-        if (this.managementKey) {
-          config.headers.Authorization = `Bearer ${this.managementKey}`;
-        }
-
-        return config;
-      },
-      (error) => Promise.reject(this.handleError(error))
-    );
-
     // Response interceptor
     this.instance.interceptors.response.use(
       (response) => {
@@ -147,14 +137,14 @@ class ApiClient {
         const supportsPlugin = this.readBooleanHeader(headers, CPA_SUPPORT_PLUGIN_HEADER_KEYS);
 
         // Dispatch version updates for store consumers
-        if (this.emitEvents() && (version || buildDate)) {
+        if (this.isCurrent(response.config) && (version || buildDate)) {
           window.dispatchEvent(
             new CustomEvent('server-version-update', {
               detail: { version: version || null, buildDate: buildDate || null },
             })
           );
         }
-        if (this.emitEvents() && supportsPlugin !== null) {
+        if (this.isCurrent(response.config) && supportsPlugin !== null) {
           window.dispatchEvent(
             new CustomEvent('server-plugin-support-update', {
               detail: { supportsPlugin },
@@ -166,6 +156,33 @@ class ApiClient {
       },
       (error) => Promise.reject(this.handleError(error))
     );
+  }
+
+  private isCurrent(config: AxiosRequestConfig): boolean {
+    return this.emitEvents() && (config as ScopedConfig).revision === this.connectionRevision;
+  }
+
+  private scoped(config?: AxiosRequestConfig, url = '', method = 'GET'): ScopedConfig {
+    if (
+      this.portalToken &&
+      !(
+        (method === 'GET' && (url === '/portal/session' || url === '/portal/status')) ||
+        (method === 'POST' && url === '/portal/logout')
+      )
+    ) {
+      throw new Error('Viewer request denied');
+    }
+    const headers = { ...config?.headers } as Record<string, string>;
+    // The credential and connection are frozen at invocation, not in an async interceptor.
+    if (this.managementKey) headers.Authorization = `Bearer ${this.managementKey}`;
+    if (this.portalToken) headers['X-Portal-Session'] = this.portalToken;
+    return {
+      ...config,
+      headers,
+      baseURL: this.apiBase,
+      revision: this.connectionRevision,
+      authenticated: url !== '/portal/login',
+    };
   }
 
   /**
@@ -184,7 +201,12 @@ class ApiClient {
       apiError.data = responseData;
 
       // Dispatch logout for unauthorized responses
-      if (this.emitEvents() && error.response?.status === 401) {
+      if (
+        error.config &&
+        this.isCurrent(error.config) &&
+        (error.config as ScopedConfig).authenticated &&
+        error.response?.status === 401
+      ) {
         window.dispatchEvent(new Event('unauthorized'));
       }
 
@@ -206,7 +228,7 @@ class ApiClient {
    * GET request
    */
   async get<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.get<T>(url, config);
+    const response = await this.instance.get<T>(url, this.scoped(config, url, 'GET'));
     return response.data;
   }
 
@@ -214,7 +236,7 @@ class ApiClient {
    * POST request
    */
   async post<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.post<T>(url, data, config);
+    const response = await this.instance.post<T>(url, data, this.scoped(config, url, 'POST'));
     return response.data;
   }
 
@@ -222,7 +244,7 @@ class ApiClient {
    * PUT request
    */
   async put<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.put<T>(url, data, config);
+    const response = await this.instance.put<T>(url, data, this.scoped(config, url, 'PUT'));
     return response.data;
   }
 
@@ -230,7 +252,7 @@ class ApiClient {
    * PATCH request
    */
   async patch<T = unknown>(url: string, data?: unknown, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.patch<T>(url, data, config);
+    const response = await this.instance.patch<T>(url, data, this.scoped(config, url, 'PATCH'));
     return response.data;
   }
 
@@ -238,7 +260,7 @@ class ApiClient {
    * DELETE request
    */
   async delete<T = unknown>(url: string, config?: AxiosRequestConfig): Promise<T> {
-    const response = await this.instance.delete<T>(url, config);
+    const response = await this.instance.delete<T>(url, this.scoped(config, url, 'DELETE'));
     return response.data;
   }
 
@@ -246,7 +268,7 @@ class ApiClient {
    * Get the raw response (for downloads, etc.)
    */
   async getRaw(url: string, config?: AxiosRequestConfig): Promise<AxiosResponse> {
-    return this.instance.get(url, config);
+    return this.instance.get(url, this.scoped(config, url, 'GET'));
   }
 
   /**
@@ -257,13 +279,21 @@ class ApiClient {
     formData: FormData,
     config?: AxiosRequestConfig
   ): Promise<T> {
-    const response = await this.instance.post<T>(url, formData, {
-      ...config,
-      headers: {
-        ...(config?.headers || {}),
-        'Content-Type': 'multipart/form-data',
-      },
-    });
+    const response = await this.instance.post<T>(
+      url,
+      formData,
+      this.scoped(
+        {
+          ...config,
+          headers: {
+            ...(config?.headers || {}),
+            'Content-Type': 'multipart/form-data',
+          },
+        },
+        url,
+        'POST'
+      )
+    );
     return response.data;
   }
 }

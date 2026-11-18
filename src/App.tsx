@@ -4,8 +4,21 @@ import { LoginPage } from '@/pages/LoginPage';
 import { NotificationContainer } from '@/components/common/NotificationContainer';
 import { ConfirmationModal } from '@/components/common/ConfirmationModal';
 import { MainLayout } from '@/components/layout/MainLayout';
+import { apiClient } from '@/services/api/client';
+import { ViewerLayout } from '@/features/portal/ViewerLayout';
+import { useAuthStore } from '@/stores';
 import { ProtectedRoute } from '@/router/ProtectedRoute';
 import { useLanguageStore, useThemeStore } from '@/stores';
+
+function AuthenticatedLayout() {
+  const principal = useAuthStore((state) => state.principal);
+  const generation = apiClient.getConnectionRevision();
+  return principal?.role === 'viewer' ? (
+    <ViewerLayout key={generation} />
+  ) : (
+    <MainLayout key={generation} />
+  );
+}
 
 function RootShell() {
   return (
@@ -26,7 +39,7 @@ const router = createHashRouter([
         path: '/*',
         element: (
           <ProtectedRoute>
-            <MainLayout />
+            <AuthenticatedLayout />
           </ProtectedRoute>
         ),
       },

@@ -6,6 +6,7 @@ import axios from 'axios';
 import { normalizeModelList } from '@/utils/models';
 import { normalizeApiBase } from '@/utils/connection';
 import { apiCallApi, getApiCallErrorMessage } from './apiCall';
+import { apiClient } from './client';
 import { isRecord } from '@/utils/helpers';
 
 const DEFAULT_CLAUDE_BASE_URL = 'https://api.anthropic.com';
@@ -13,6 +14,11 @@ const DEFAULT_GEMINI_BASE_URL = 'https://generativelanguage.googleapis.com';
 const DEFAULT_ANTHROPIC_VERSION = '2023-06-01';
 const CLAUDE_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
 const GEMINI_MODELS_IN_FLIGHT = new Map<string, Promise<ReturnType<typeof normalizeModelList>>>();
+
+export const clearModelDiscoveryRequests = () => {
+  CLAUDE_MODELS_IN_FLIGHT.clear();
+  GEMINI_MODELS_IN_FLIGHT.clear();
+};
 
 const buildRequestSignature = (
   url: string,
@@ -215,12 +221,15 @@ export const modelsApi = {
       resolvedHeaders['anthropic-version'] = DEFAULT_ANTHROPIC_VERSION;
     }
 
-    const signature = buildRequestSignature(
-      endpoint,
-      resolvedHeaders,
-      trimmedAuthIndex,
-      proxyUrl?.trim() || undefined
-    );
+    const revision = apiClient.getConnectionRevision();
+    const signature =
+      `${revision}:` +
+      buildRequestSignature(
+        endpoint,
+        resolvedHeaders,
+        trimmedAuthIndex,
+        proxyUrl?.trim() || undefined
+      );
     const existing = CLAUDE_MODELS_IN_FLIGHT.get(signature);
     if (existing) return existing;
 
@@ -245,7 +254,8 @@ export const modelsApi = {
     try {
       return await request;
     } finally {
-      CLAUDE_MODELS_IN_FLIGHT.delete(signature);
+      if (CLAUDE_MODELS_IN_FLIGHT.get(signature) === request)
+        CLAUDE_MODELS_IN_FLIGHT.delete(signature);
     }
   },
 
@@ -274,12 +284,15 @@ export const modelsApi = {
       resolvedHeaders['x-goog-api-key'] = '$TOKEN$';
     }
 
-    const signature = buildRequestSignature(
-      endpoint,
-      resolvedHeaders,
-      trimmedAuthIndex,
-      proxyUrl?.trim() || undefined
-    );
+    const revision = apiClient.getConnectionRevision();
+    const signature =
+      `${revision}:` +
+      buildRequestSignature(
+        endpoint,
+        resolvedHeaders,
+        trimmedAuthIndex,
+        proxyUrl?.trim() || undefined
+      );
     const existing = GEMINI_MODELS_IN_FLIGHT.get(signature);
     if (existing) return existing;
 
@@ -289,6 +302,7 @@ export const modelsApi = {
       let pageToken = '';
 
       for (let page = 0; page < 20; page += 1) {
+        if (revision !== apiClient.getConnectionRevision()) throw new Error('Session changed');
         const url = new URL(endpoint);
         if (pageToken) {
           url.searchParams.set('pageToken', pageToken);
@@ -337,7 +351,8 @@ export const modelsApi = {
     try {
       return await request;
     } finally {
-      GEMINI_MODELS_IN_FLIGHT.delete(signature);
+      if (GEMINI_MODELS_IN_FLIGHT.get(signature) === request)
+        GEMINI_MODELS_IN_FLIGHT.delete(signature);
     }
   },
 };

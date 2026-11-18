@@ -92,10 +92,18 @@ export function LoginPage() {
   const setLanguage = useLanguageStore((state) => state.setLanguage);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const login = useAuthStore((state) => state.login);
+  const loginViewer = useAuthStore((state) => state.loginViewer);
+  const selectViewer = useAuthStore((state) => state.selectViewer);
+  const [mode, setMode] = useState<'owner' | 'viewer'>(() =>
+    sessionStorage.getItem('portal-viewer-mode') === '1' ||
+    localStorage.getItem('portal-viewer-mode') === '1'
+      ? 'viewer'
+      : 'owner'
+  );
+  const [username, setUsername] = useState('');
+  const [viewerPassword, setViewerPassword] = useState('');
   const restoreSession = useAuthStore((state) => state.restoreSession);
   const storedBase = useAuthStore((state) => state.apiBase);
-  const storedKey = useAuthStore((state) => state.managementKey);
-  const storedRememberPassword = useAuthStore((state) => state.rememberPassword);
 
   const [apiBase, setApiBase] = useState('');
   const [managementKey, setManagementKey] = useState('');
@@ -139,8 +147,9 @@ export function LoginPage() {
           }, 1500);
         } else {
           setApiBase(storedBase || detectedBase);
-          setManagementKey(storedKey || '');
-          setRememberPassword(storedRememberPassword || Boolean(storedKey));
+          const state = useAuthStore.getState();
+          setManagementKey(state.managementKey || '');
+          setRememberPassword(state.rememberPassword || Boolean(state.managementKey));
         }
       } finally {
         // 自动登录成功时 showSplash 仍由 autoLoginSuccess 维持，可无条件结束 loading
@@ -153,7 +162,7 @@ export function LoginPage() {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!managementKey.trim()) {
+    if (mode === 'viewer' ? !username.trim() || !viewerPassword : !managementKey.trim()) {
       setError(t('login.error_required'));
       return;
     }
@@ -161,25 +170,42 @@ export function LoginPage() {
     const baseToUse = apiBase ? normalizeApiBase(apiBase) : detectedBase;
     setLoading(true);
     setError('');
+    let notify = showNotification;
     try {
-      await login({
-        apiBase: baseToUse,
-        managementKey: managementKey.trim(),
-        rememberPassword,
-      });
-      showNotification(t('common.connected_status'), 'success');
+      const attempt =
+        mode === 'viewer'
+          ? loginViewer(baseToUse, username, viewerPassword)
+          : login({ apiBase: baseToUse, managementKey: managementKey.trim(), rememberPassword });
+      notify = useNotificationStore.getState().showNotification;
+      await attempt;
+      if (notify !== useNotificationStore.getState().showNotification) return;
+      notify(t('common.connected_status'), 'success');
       navigate('/', { replace: true });
     } catch (err: unknown) {
-      const message = getLocalizedErrorMessage(err, t);
+      if (notify !== useNotificationStore.getState().showNotification) return;
+      const status = (err as Partial<ApiError>).status;
+      const message =
+        mode === 'viewer' && status === 404
+          ? t('portal.unsupported')
+          : mode === 'viewer' && status === 429
+            ? t('portal.throttled')
+            : getLocalizedErrorMessage(err, t);
       setError(message);
-      showNotification(`${t('notification.login_failed')}: ${message}`, 'error');
+      notify(`${t('notification.login_failed')}: ${message}`, 'error');
     } finally {
-      setLoading(false);
+      if (notify === useNotificationStore.getState().showNotification) {
+        setViewerPassword('');
+        setLoading(false);
+      }
     }
   }, [
     apiBase,
     detectedBase,
     login,
+    loginViewer,
+    mode,
+    username,
+    viewerPassword,
     managementKey,
     navigate,
     rememberPassword,
@@ -277,46 +303,104 @@ export function LoginPage() {
                 />
               )}
 
-              <Input
-                autoFocus
-                label={t('login.management_key_label')}
-                placeholder={t('login.management_key_placeholder')}
-                type={showKey ? 'text' : 'password'}
-                name="cpa-management-key"
-                autoComplete="current-password"
-                value={managementKey}
-                onChange={(e) => setManagementKey(e.target.value)}
-                onKeyDown={handleSubmitKeyDown}
-                rightElement={
-                  <button
-                    type="button"
-                    className="btn btn-ghost btn-sm"
-                    onClick={() => setShowKey((prev) => !prev)}
-                    aria-label={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
+              <fieldset>
+                <legend>{t('portal.login_type')}</legend>
+                <label>
+                  <input
+                    type="radio"
+                    name="login-mode"
+                    checked={mode === 'owner'}
+                    onChange={() => {
+                      selectViewer();
+                      setManagementKey('');
+                      setRememberPassword(false);
+                      setLoading(false);
+                      setError('');
+                      setMode('owner');
+                      setViewerPassword('');
+                    }}
+                  />{' '}
+                  {t('portal.owner')}
+                </label>{' '}
+                <label>
+                  <input
+                    type="radio"
+                    name="login-mode"
+                    checked={mode === 'viewer'}
+                    onChange={() => {
+                      selectViewer();
+                      setManagementKey('');
+                      setRememberPassword(false);
+                      setLoading(false);
+                      setError('');
+                      setMode('viewer');
+                    }}
+                  />{' '}
+                  {t('portal.viewer')}
+                </label>
+              </fieldset>
+              {mode === 'viewer' ? (
+                <>
+                  <Input
+                    label={t('portal.username')}
+                    autoComplete="username"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onKeyDown={handleSubmitKeyDown}
+                  />
+                  <Input
+                    label={t('portal.password')}
+                    type="password"
+                    autoComplete="current-password"
+                    value={viewerPassword}
+                    onChange={(e) => setViewerPassword(e.target.value)}
+                    onKeyDown={handleSubmitKeyDown}
+                  />
+                </>
+              ) : (
+                <>
+                  <Input
+                    autoFocus
+                    label={t('login.management_key_label')}
+                    placeholder={t('login.management_key_placeholder')}
+                    type={showKey ? 'text' : 'password'}
+                    name="cpa-management-key"
+                    autoComplete="current-password"
+                    value={managementKey}
+                    onChange={(e) => setManagementKey(e.target.value)}
+                    onKeyDown={handleSubmitKeyDown}
+                    rightElement={
+                      <button
+                        type="button"
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setShowKey((prev) => !prev)}
+                        aria-label={
+                          showKey
+                            ? t('login.hide_key', { defaultValue: '隐藏密钥' })
+                            : t('login.show_key', { defaultValue: '显示密钥' })
+                        }
+                        title={
+                          showKey
+                            ? t('login.hide_key', { defaultValue: '隐藏密钥' })
+                            : t('login.show_key', { defaultValue: '显示密钥' })
+                        }
+                      >
+                        {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+                      </button>
                     }
-                    title={
-                      showKey
-                        ? t('login.hide_key', { defaultValue: '隐藏密钥' })
-                        : t('login.show_key', { defaultValue: '显示密钥' })
-                    }
-                  >
-                    {showKey ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-                  </button>
-                }
-              />
+                  />
 
-              <div className={styles.toggleAdvanced}>
-                <SelectionCheckbox
-                  checked={rememberPassword}
-                  onChange={setRememberPassword}
-                  ariaLabel={t('login.remember_password_label')}
-                  label={t('login.remember_password_label')}
-                  labelClassName={styles.toggleLabel}
-                />
-              </div>
+                  <div className={styles.toggleAdvanced}>
+                    <SelectionCheckbox
+                      checked={rememberPassword}
+                      onChange={setRememberPassword}
+                      ariaLabel={t('login.remember_password_label')}
+                      label={t('login.remember_password_label')}
+                      labelClassName={styles.toggleLabel}
+                    />
+                  </div>
+                </>
+              )}
 
               <Button fullWidth onClick={handleSubmit} loading={loading}>
                 {loading ? t('login.submitting') : t('login.submit_button')}

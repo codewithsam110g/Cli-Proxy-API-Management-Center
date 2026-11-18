@@ -13,9 +13,16 @@ import { PluginStorePage } from '@/features/plugins/PluginStorePage';
 import { ConfigPage } from '@/features/config/ConfigPage';
 import { LogsPage } from '@/features/logs/LogsPage';
 import { SystemPage } from '@/pages/SystemPage';
+import { PortalManagementPage } from '@/features/portal/PortalManagementPage';
+import { PortalStatusPage } from '@/features/portal/PortalStatusPage';
 import { useAuthStore } from '@/stores';
 
-const createMainRoutes = (supportsPlugin: boolean) => [
+const createMainRoutes = (supportsPlugin: boolean, canManage: boolean, canRead: boolean) => [
+  { path: '/portal/status', element: canRead ? <PortalStatusPage /> : <Navigate to="/" replace /> },
+  {
+    path: '/portal/users',
+    element: canManage ? <PortalManagementPage /> : <Navigate to="/" replace />,
+  },
   { path: '/', element: <DashboardPage /> },
   { path: '/dashboard', element: <DashboardPage /> },
   { path: '/settings', element: <Navigate to="/config" replace /> },
@@ -51,5 +58,13 @@ const createMainRoutes = (supportsPlugin: boolean) => [
 
 export function MainRoutes({ location }: { location?: Location }) {
   const supportsPlugin = useAuthStore((state) => state.supportsPlugin);
-  return useRoutes(createMainRoutes(supportsPlugin), location);
+  const capabilities = useAuthStore((state) => state.principal?.capabilities || []);
+  return useRoutes(
+    createMainRoutes(
+      supportsPlugin,
+      capabilities.includes('viewers:manage'),
+      capabilities.includes('status:read')
+    ),
+    location
+  );
 }

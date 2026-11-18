@@ -115,6 +115,7 @@ export const fetchPluginQuota = async (
   file: AuthFileItem,
   t: TFunction
 ): Promise<PluginQuotaData> => {
+  const revision = apiClient.getConnectionRevision();
   const authIndex = normalizeAuthIndex(file.authIndex ?? file['auth_index']);
   if (!authIndex) throw new Error(t('plugin_quota.missing_auth_index'));
 
@@ -129,6 +130,7 @@ export const fetchPluginQuota = async (
   }
   if (!pluginId) throw new Error(t('plugin_quota.plugin_not_found', { provider }));
 
+  if (revision !== apiClient.getConnectionRevision()) throw new Error('Session changed');
   const payload = await apiClient.post<PluginQuotaPayload>(
     `/plugins/${encodeURIComponent(pluginId)}/quota`,
     { auth_index: authIndex }

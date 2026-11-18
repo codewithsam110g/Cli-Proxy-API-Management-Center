@@ -18,36 +18,12 @@ export type UseProviderRecentRequestsOptions = {
 
 const EMPTY_USAGE_BY_PROVIDER: ProviderRecentRequests = new Map();
 
-type ProviderRecentRequestsCache = {
-  cachedUsageByProvider: ProviderRecentRequests;
-  cachedAt: number;
-  inFlightRequest: Promise<ProviderRecentRequests> | null;
-};
-
-const createProviderRecentRequestsCache = (): ProviderRecentRequestsCache => ({
-  cachedUsageByProvider: EMPTY_USAGE_BY_PROVIDER,
-  cachedAt: 0,
-  inFlightRequest: null,
-});
-
-export const createProviderRecentRequestsCacheController = () => {
-  let currentApiBase = '';
-  let currentManagementKey = '';
-  let currentCache = createProviderRecentRequestsCache();
-
-  return {
-    forScope(apiBase: string, managementKey: string): ProviderRecentRequestsCache {
-      if (apiBase !== currentApiBase || managementKey !== currentManagementKey) {
-        currentApiBase = apiBase;
-        currentManagementKey = managementKey;
-        currentCache = createProviderRecentRequestsCache();
-      }
-      return currentCache;
-    },
-  };
-};
-
-const providerRecentRequestsCacheController = createProviderRecentRequestsCacheController();
+export { createProviderRecentRequestsCacheController } from './providerRecentRequestsCache';
+import {
+  providerRecentRequestsCacheController,
+  type ProviderRecentRequestsCache,
+} from './providerRecentRequestsCache';
+import { apiClient } from '@/services/api/client';
 
 const normalizeProviderKey = (value: unknown): string =>
   String(value ?? '')
@@ -106,7 +82,12 @@ export function useProviderRecentRequests(options: UseProviderRecentRequestsOpti
   const apiBase = useAuthStore((state) => state.apiBase);
   const managementKey = useAuthStore((state) => state.managementKey);
   const cache = useMemo(
-    () => providerRecentRequestsCacheController.forScope(apiBase, managementKey),
+    () =>
+      providerRecentRequestsCacheController.forScope(
+        apiBase,
+        managementKey,
+        apiClient.getConnectionRevision()
+      ),
     [apiBase, managementKey]
   );
   const [usageState, setUsageState] = useState(() => ({
@@ -132,8 +113,7 @@ export function useProviderRecentRequests(options: UseProviderRecentRequestsOpti
       }
 
       const hasFreshCache =
-        cache.cachedAt > 0 &&
-        Date.now() - cache.cachedAt < PROVIDER_RECENT_REQUESTS_STALE_TIME_MS;
+        cache.cachedAt > 0 && Date.now() - cache.cachedAt < PROVIDER_RECENT_REQUESTS_STALE_TIME_MS;
 
       if (!loadOptions.force && hasFreshCache) {
         setUsageForCurrentScope(cache.cachedUsageByProvider);

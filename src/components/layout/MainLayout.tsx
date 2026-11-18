@@ -312,6 +312,7 @@ export function MainLayout() {
   const connectionStatus = useAuthStore((state) => state.connectionStatus);
   const apiBase = useAuthStore((state) => state.apiBase);
   const supportsPlugin = useAuthStore((state) => state.supportsPlugin);
+  const capabilities = useAuthStore((state) => state.principal?.capabilities || []);
 
   const fetchConfig = useConfigStore((state) => state.fetchConfig);
   const clearCache = useConfigStore((state) => state.clearCache);
@@ -649,6 +650,12 @@ export function MainLayout() {
       id: 'control',
       labelKey: 'nav_groups.control',
       items: [
+        ...(capabilities.includes('status:read')
+          ? [{ path: '/portal/status', labelKey: 'portal.status', icon: sidebarIcons.dashboard }]
+          : []),
+        ...(capabilities.includes('viewers:manage')
+          ? [{ path: '/portal/users', labelKey: 'portal.manage', icon: sidebarIcons.config }]
+          : []),
         {
           path: '/config',
           labelKey: 'nav.config_management',
